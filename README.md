@@ -1,7 +1,7 @@
 # Expense Tracking App - Receipt Intelligence
 
 Production-oriented scaffold for a receipt intelligence platform using FastAPI, PostgreSQL, LangGraph, and React + Vite.
-
+ 
 ## Project Structure
 
 - `backend/` FastAPI service with modular architecture

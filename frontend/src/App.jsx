@@ -16,8 +16,16 @@ export default function App() {
     window.matchMedia('(prefers-color-scheme: dark)').matches
   )
 
+  function fallbackUuid() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const rand = Math.random() * 16 | 0
+      const val = c === 'x' ? rand : (rand & 0x3 | 0x8)
+      return val.toString(16)
+    })
+  }
+
   function createGuestUser() {
-    const id = (window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`)
+    const id = window.crypto?.randomUUID?.() || fallbackUuid()
     return {
       user_id: id,
       email: null,
@@ -46,7 +54,7 @@ export default function App() {
   }, [user])
 
   async function signUp(email) {
-    const registered = await registerUser(email.trim().toLowerCase())
+    const registered = await registerUser(email.trim().toLowerCase(), user.user_id)
     setUser({ ...registered, isGuest: false })
     return registered
   }

@@ -13,6 +13,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 class RegisterRequest(BaseModel):
     email: EmailStr
+    current_user_id: uuid.UUID | None = None
 
 
 class RegisterResponse(BaseModel):
@@ -23,5 +24,5 @@ class RegisterResponse(BaseModel):
 @router.post("/register", response_model=RegisterResponse)
 def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> RegisterResponse:
     repo = UserRepository(db)
-    user = repo.get_or_create_by_email(str(payload.email))
+    user = repo.register_with_email(str(payload.email), payload.current_user_id)
     return RegisterResponse(user_id=user.id, email=user.email)

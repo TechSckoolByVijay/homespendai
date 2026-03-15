@@ -1,10 +1,10 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
-export async function registerUser(email) {
+export async function registerUser(email, currentUserId = null) {
   const response = await fetch(`${BASE_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email })
+    body: JSON.stringify({ email, current_user_id: currentUserId })
   })
   if (!response.ok) throw new Error('Failed to register user')
   return response.json()

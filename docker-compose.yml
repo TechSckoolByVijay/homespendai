@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: expense_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: expense_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - '5050:80'
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+  fastapi:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: expense_fastapi
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    ports:
+      - '8000:8000'
+    depends_on:
+      - postgres
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: expense_worker
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    command: ["python", "-m", "app.worker"]
+    depends_on:
+      - postgres
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        VITE_BASE_PATH: ${VITE_BASE_PATH}
+    container_name: expense_frontend
+    restart: unless-stopped
+    ports:
+      - '8080:80'
+    depends_on:
+      - fastapi
+
+volumes:
+  postgres_data:
+  pgadmin_data:

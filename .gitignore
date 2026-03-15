@@ -1,0 +1,17 @@
+# Environment secrets
+.env
+backend/.env.docker
+backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Docker volumes
+postgres_data/
+pgadmin_data/

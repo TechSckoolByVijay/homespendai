@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { uploadReceipt } from '../services/api'
 
-export default function ReceiptScanner({ userId }) {
+export default function ReceiptScanner({ userId, onProcessed }) {
   const [status, setStatus] = useState('idle') // idle | uploading | success | error
   const [message, setMessage] = useState('')
   const cameraInputRef = useRef(null)
@@ -14,7 +14,8 @@ export default function ReceiptScanner({ userId }) {
     try {
       await uploadReceipt(userId, file)
       setStatus('success')
-      setMessage('Receipt processed! View it in Receipts.')
+      setMessage('Receipt processed! Insights updated below.')
+      onProcessed?.()
     } catch (err) {
       setStatus('error')
       setMessage(err?.message || 'Upload failed. Please try again.')

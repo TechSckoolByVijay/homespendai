@@ -15,14 +15,22 @@ export default function App() {
   const [dark, setDark] = useState(() =>
     window.matchMedia('(prefers-color-scheme: dark)').matches
   )
-  const [email, setEmail] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+
+  function createGuestUser() {
+    const id = (window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`)
+    return {
+      user_id: id,
+      email: null,
+      isGuest: true,
+    }
+  }
+
   const [user, setUser] = useState(() => {
     try {
       const raw = localStorage.getItem('expense_user')
-      return raw ? JSON.parse(raw) : null
+      return raw ? JSON.parse(raw) : createGuestUser()
     } catch {
-      return null
+      return createGuestUser()
     }
   })
   const location = useLocation()
@@ -37,46 +45,10 @@ export default function App() {
     }
   }, [user])
 
-  async function handleRegister(e) {
-    e.preventDefault()
-    if (!email) return
-    setSubmitting(true)
-    try {
-      const registered = await registerUser(email.trim().toLowerCase())
-      setUser(registered)
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-900 dark:bg-slate-900 dark:text-slate-100">
-        <div className="mx-auto max-w-lg rounded-3xl bg-white p-6 shadow-sm dark:bg-slate-800">
-          <h1 className="text-xl font-bold">Welcome to Receipt Intelligence</h1>
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Enter your email once to create/select your profile. Your receipts and insights are then tied to this user.
-          </p>
-          <form onSubmit={handleRegister} className="mt-5 space-y-3">
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-indigo-500 focus:ring dark:border-slate-600 dark:bg-slate-900"
-            />
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60"
-            >
-              {submitting ? 'Setting up profile…' : 'Continue'}
-            </button>
-          </form>
-        </div>
-      </div>
-    )
+  async function signUp(email) {
+    const registered = await registerUser(email.trim().toLowerCase())
+    setUser({ ...registered, isGuest: false })
+    return registered
   }
 
   return (
@@ -89,7 +61,7 @@ export default function App() {
           </div>
           <div className="flex items-center gap-2">
             <span className="max-w-36 truncate rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-              {user.email}
+              {user?.isGuest ? 'Guest mode' : user?.email}
             </span>
             <button
               onClick={() => setDark(d => !d)}
@@ -104,7 +76,7 @@ export default function App() {
 
       <main className="mx-auto max-w-lg px-4 pb-24 pt-5">
         <Routes>
-          <Route path="/" element={<Home userId={user.user_id} />} />
+          <Route path="/" element={<Home user={user} onSignUp={signUp} />} />
           <Route path="/receipts" element={<Receipts userId={user.user_id} />} />
           <Route path="/insights" element={<Insights userId={user.user_id} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
